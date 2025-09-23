@@ -1,0 +1,341 @@
+<!-- Third-Party Licenses: Fira Code -->
+<!-- Third-Party Licenses: Ace Editor -->
+<!-- Third-Party Licenses: Wandbox -->
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SEdit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+        }
+        .main-flex {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            height: 80vh;
+            min-height: 300px;
+        }
+        #editor {
+            width: 80vw;
+            height: 80vh;
+            min-width: 300px;
+            min-height: 200px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        #status-table th {
+            text-align: left;
+            padding-right: 8px;
+        }
+        #side-area {
+            width: 20vw;
+            min-width: 160px;
+            margin-left: 8px;
+            margin-right: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        #input-stdin-area {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+        #input-stdin-area label {
+            margin-bottom: 4px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            resize: none;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        #apikey {
+            height: 24px;
+        }
+        .button-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .button-bar button {
+            width: 100%;
+            font-size: 15px;
+            padding: 8px 0;
+        }
+        #status-table {
+            margin-top: 8px;
+        }
+        .outputs {
+            border: solid 2px #000000;
+            margin-left: 8px;
+            padding: 8px;
+        }
+        .outputs label {
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: block;
+        }
+        #err {
+            color: red;
+        }
+        #out {
+            margin-top: 8px;
+        }
+        
+        input[type=checkbox].toggle{
+          --size:24px;
+          appearance:none;-webkit-appearance:none;
+          outline:none;
+          display:inline-block;width:calc(var(--size)*1.62);height:var(--size);
+          border-radius:calc(var(--size)*.5);
+          vertical-align:middle;
+          background-color:#666;
+          transition:.1s;
+        }
+         input[type=checkbox].toggle::before{
+           content:"";
+           display:block;
+           width:var(--size);height:var(--size);
+           border-radius:50%;
+           transform:scale(.85);
+           background-color:#ffffff;
+           transition:inherit;
+        }
+         input[type=checkbox]:checked.toggle{
+           background-color:rgb(0, 214, 43);
+        }
+         input[type=checkbox]:checked.toggle::before{
+           transform:translateX(calc(var(--size)*.62))scale(.85);
+        }
+        
+        .expect-stdin,.apikey-area {
+          visibility: hidden;
+        }
+        
+        /* チェックされたら表示 */
+        #checkbox:checked ~ .expect-stdin {
+          visibility: visible;
+        }
+        
+        .selectapi select {
+            width: 100%;
+            font-size: 18px;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+        }
+        
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ext-language_tools.js"></script>
+    <link rel="shortcut icon" href="data:image/x-icon;base64,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" />
+</head>
+
+<body>
+    <div class="main-flex">
+        <div id="editor"></div>
+        <div id="side-area">
+            <div class="selectapi">
+                <label for="selectapi">SELECT API</label>
+                <select id="selectapi">
+                    <option label="Wandbox - mono-6.12.0.199" value="wandbox"/>
+                </select>
+                <div class="apikey-area">
+                    <label>API-KEY</label>
+                    <textarea id="apikey" rows="1"></textarea>
+                </div>
+            </div>
+            <div id="input-stdin-area">
+                <label for="input-stdin">INPUT</label>
+                <textarea id="input-stdin" rows="3"></textarea>
+            </div>
+            <div id="expect">
+                <label for="checkbox">EXPECT INPUT</label>
+                <input type="checkbox" class="toggle" id="checkbox">
+                <div class="expect-stdin">
+                    <textarea id="expect-stdin" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="button-bar">
+                <button id="set-main">set main</button>
+                <button id="insert-aclib">ins aclib</button>
+                <button id="run-cs">Run C#</button>
+            </div>
+            <table id="status-table">
+                <tr>
+                    <th>Status:</th>
+                    <td id="status"></td>
+                </tr>
+                <tr>
+                    <th>ExitCode:</th>
+                    <td id="exitcode"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!-- OUTPUT以下をmain-flexの外に出す -->
+    <br>
+    <div class="outputs">
+        <label>OUTPUT</label>
+        <pre id="err"></pre>
+        <pre id="out"></pre></div>
+    <script>
+    const selectAPI = document.getElementById("selectapi");
+    const apikeyArea = document.querySelector(".apikey-area");
+    const Stdin = document.getElementById("input-stdin");
+    const ExpectStdin = document.getElementById("expect-stdin");
+    const checkbox = document.getElementById("checkbox");
+    const Status = document.getElementById("status");
+    const ExitCode = document.getElementById("exitcode");
+    const Err = document.getElementById("err");
+    const Out = document.getElementById("out");
+
+    const setMain = document.getElementById("set-main");
+    const insertAclib = document.getElementById("insert-aclib");
+    const run = document.getElementById("run-cs");
+
+    // Editor
+    const editor = ace.edit("editor");
+    editor.$blockScrolling = Infinity;
+    editor.setTheme("ace/theme/dawn");
+    editor.getSession().setMode("ace/mode/csharp");
+    editor.setFontSize(16);
+    editor.session.setUseSoftTabs(true);
+    editor.session.setUseWrapMode(true);
+    editor.session.setTabSize(4);
+    editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableSnippets: true,
+        enableLiveAutocompletion: true,
+        fontFamily: "Fira Code, monospace"
+    });
+
+    function parseCompilerErrors(errorText) {
+        const annotations = [];
+        const lines = errorText.split('\n');
+        const regex = /^(?:\[.*?\])?(.*?)[(:](\d+)[,:](\d+)?\)?:?\s*(error|warning)?\s*:?(.+)?$/;
+        for (const line of lines) {
+            const match = regex.exec(line);
+            if (match) {
+                const [, , lineNum, colNum, type, message] = match;
+                const row = parseInt(lineNum, 10) - 1;
+                const column = colNum ? parseInt(colNum, 10) - 1 : 0;
+                annotations.push({
+                    row,
+                    column,
+                    text: message ? message.trim() : "Error",
+                    type: (type === "warning") ? "warning" : "error"
+                });
+            }
+        }
+        return annotations;
+    }
+
+    async function request(body) {
+        editor.getSession().clearAnnotations();
+        const selectedAPI = selectAPI.value;
+        try {
+            if (selectedAPI === "wandbox") {
+                const res = await fetch("https://wandbox.org/api/compile.json", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+                const json = await res.json();
+                let output = "", error = "", status = "OK", exitCode = "";
+
+                if (json.program_output) output += json.program_output;
+                if (json.program_error) error += json.program_error;
+                if (json.compiler_output) output += json.compiler_output;
+                if (json.compiler_error) {
+                    error += json.compiler_error;
+                    const annotations = parseCompilerErrors(json.compiler_error);
+                    editor.getSession().setAnnotations(annotations);
+                }
+
+                if (json.status !== undefined) exitCode = String(json.status);
+                if (json.signal) exitCode += ` (${json.signal})`;
+
+                if (json.compiler_error?.trim()) status = "CE";
+                else if (json.status !== 0) status = "RE";
+
+                return { status, exitCode, output, error };
+            } else {
+                throw new Error("Unknown API selected");
+            }
+        } catch (e) {
+            console.error(e);
+            return {
+                status: "IE",
+                exitCode: "",
+                output: "",
+                error: String(e)
+            };
+        }
+    }
+
+    // SET MAIN button
+    setMain.addEventListener("click", function () {
+    editor.session.setValue('using System;\nusing System.Collections.Generic;\nusing System.Diagnostics;\nusing System.Linq;\nusing System.Numerics;\nusing static Utils;\nclass P{\n    public static void Main(string[] args){\n        \n    }\n}\nclass Utils\n{\n    public static string yn(bool b) => b ? "Yes" : "No";\n    public static int teg() => int.Parse(str());\n    public static string str() => Console.ReadLine() ?? throw new Exception("No input");\n    public static string[] lis_str() => str().Split(\' \');\n    public static int[] lis_teg() => Array.ConvertAll(lis_str(), int.Parse);\n    public static void outlis(object[] a) => Console.WriteLine(string.Join(" ", a));\n    public static void outln(object a) => Console.WriteLine(a);\n    public static int[] range(int n) => Enumerable.Range(0, n).ToArray();\n    public static int[] range(int start, int n) => Enumerable.Range(start, n).ToArray();\n    public static List<List<string>> reverse_lis2d(List<List<string>> targetList, string pad)\n    {\n        var resultList = new List<List<string>>();\n\n        foreach (var row in targetList.Select((v, i) => new { v, i }))\n        {\n            while (resultList.Count() < row.v.Count())\n                resultList.Add(new List<string>());\n\n            foreach (var col in row.v.Select((v, i) => new { v, i }))\n            {\n                while (row.i > resultList[col.i].Count())\n                    resultList[col.i].Add(string.Empty);\n\n                resultList[col.i].Add(col.v);\n            }\n        }\n\n        foreach (var row in resultList)\n        {\n            while (row.Count() < targetList.Count())\n            {\n                row.Add(pad);\n            }\n        }\n\n        return resultList;\n    }\n    public static bool multi_diff_str(List<string> es)\n    {\n        for (int i = 1; i < es.Count; i++)\n            if (es[i] != es[0]) return false;\n        return true;\n    }\n    public static void fin()=>Environment.Exit(0);\n}'), editor.gotoLine(9)
+        editor.gotoLine(9);
+    });
+
+    // INSERT ACLIB button
+    insertAclib.addEventListener("click", function () {
+        editor.gotoLine(1);
+        editor.session.insert(editor.selection.getCursor(), "using AtCoder;\n    using AtCoder.Internal;\n    using System.Runtime.CompilerServices;\n    using System.Runtime.Intrinsics.X86;\n");
+        editor.gotoLine(editor.session.getLength() + 1), editor.session.insert(editor.selection.getCursor(), '#region Expanded\nnamespace AtCoder { public interface ISegtreeOperator<T> { T Identity { get; } T Operate(T x, T y); } [DebuggerTypeProxy(typeof(Segtree<,>.DebugView))] public class Segtree<TValue, TOp> where TOp : struct, ISegtreeOperator<TValue> { private static readonly TOp op = default; public int Length { get; } internal readonly int log; internal readonly int size; internal readonly TValue[] d; public Segtree(int n) { DebugUtil.Assert(0 <= n); AssertMonoid(op.Identity); Length = n; log = InternalBit.CeilPow2(n); size = 1 << log; d = new TValue[2 * size]; Array.Fill(d, op.Identity); } public Segtree(TValue[] v) : this(v.Length) { for (int i = 0; i < v.Length; i++) d[size + i] = v[i]; for (int i = size - 1; i >= 1; i--) { Update(i); } } [MethodImpl(MethodImplOptions.AggressiveInlining)] internal void Update(int k) => d[k] = op.Operate(d[2 * k], d[2 * k + 1]); public TValue this[int p] { [MethodImpl(MethodImplOptions.AggressiveInlining)] set { AssertMonoid(value); DebugUtil.Assert((uint)p < Length); p += size; d[p] = value; for (int i = 1; i <= log; i++) Update(p >> i); } [MethodImpl(MethodImplOptions.AggressiveInlining)] get { DebugUtil.Assert((uint)p < Length); AssertMonoid(d[p + size]); return d[p + size]; } } [MethodImpl(MethodImplOptions.AggressiveInlining)] public TValue Slice(int l, int len) => Prod(l, l + len); [MethodImpl(MethodImplOptions.AggressiveInlining)] public TValue Prod(int l, int r) { DebugUtil.Assert(0 <= l && l <= nameof(r) && nameof(r) <= Length); TValue sml = op.Identity, smr = op.Identity; l += size; r += size; while (l < r) { if ((l & 1) != 0) sml = op.Operate(sml, d[l++]); if ((r & 1) != 0) smr = op.Operate(d[--r], smr); l >>= 1; r >>= 1; } AssertMonoid(op.Operate(sml, smr)); return op.Operate(sml, smr); } public TValue AllProd => d[1]; public int MaxRight(int l, Predicate<TValue> f) { DebugUtil.Assert((uint)l <= Length); DebugUtil.Assert(f(op.Identity)); if (l == Length) return Length; l += size; var sm = op.Identity; do { while (l % 2 == 0) l >>= 1; if (!f(op.Operate(sm, d[l]))) { while (l < size) { l = (2 * l); if (f(op.Operate(sm, d[l]))) { sm = op.Operate(sm, d[l]); l++; } } return l - size; } sm = op.Operate(sm, d[l]); l++; } while ((l & -l) != l); return Length; } public int MinLeft(int r, Predicate<TValue> f) { DebugUtil.Assert((uint)r <= Length); DebugUtil.Assert(f(op.Identity)); if (r == 0) return 0; r += size; var sm = op.Identity; do { r--; while (r > 1 && (r % 2) != 0) r >>= 1; if (!f(op.Operate(d[r], sm))) { while (r < size) { r = (2 * r + 1); if (f(op.Operate(d[r], sm))) { sm = op.Operate(d[r], sm); r--; } } return r + 1 - size; } sm = op.Operate(d[r], sm); } while ((r & -r) != r); return 0; } [DebuggerDisplay("{" + nameof(value) + "}", Name = "{" + nameof(key) + ",nq}")] private struct DebugItem { public DebugItem(int l, int r, TValue value) { if (r - l == 1) key = $"[{l}]"; else key = $"[{l}-{r})"; this.value = value; } [DebuggerBrowsable(DebuggerBrowsableState.Never)] private readonly string key; [DebuggerBrowsable(DebuggerBrowsableState.Never)] private readonly TValue value; } private class DebugView { private readonly Segtree<TValue, TOp> segtree; public DebugView(Segtree<TValue, TOp> segtree) { this.segtree = segtree; } [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)] public DebugItem[] Items { get { var items = new List<DebugItem>(segtree.Length); for (int len = segtree.size; len > 0; len >>= 1) { int unit = segtree.size / len; for (int i = 0; i < len; i++) { int l = i * unit; int r = Math.Min(l + unit, segtree.Length); if (l < segtree.Length) items.Add(new DebugItem(l, r, segtree.d[i + len])); } } return items.ToArray(); } } } [Conditional("DEBUG")] public static void AssertMonoid(TValue value) { DebugUtil.Assert(op.Operate(value, op.Identity).Equals(value), $"{nameof(op.Operate)}({value}, {op.Identity}) != {value}"); DebugUtil.Assert(op.Operate(op.Identity, value).Equals(value), $"{nameof(op.Operate)}({op.Identity}, {value}) != {value}"); } } } \nnamespace SourceExpander { public class Expander { [Conditional("EXPANDER")] public static void Expand(string inputFilePath = null, string outputFilePath = null, bool ignoreAnyError = true) { } public static string ExpandString(string inputFilePath = null, bool ignoreAnyError = true) { return ""; } } } \nnamespace AtCoder.Internal { internal static class DebugUtil { [Conditional("DEBUG")] public static void Assert(bool condition, string reason = null) { if (!condition) throw new DebugAssertException(reason); } [Conditional("DEBUG")] public static void Assert(Func<bool> conditionFunc, string reason = null) { if (!conditionFunc()) throw new DebugAssertException(reason); } } } \nnamespace AtCoder.Internal { public static class InternalBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] public static int ExtractLowestSetBit(int n) { if (Bmi1.IsSupported) { return (int)Bmi1.ExtractLowestSetBit((uint)n); } return n & -n; } [MethodImpl(MethodImplOptions.AggressiveInlining)] public static int BSF(uint n) { DebugUtil.Assert(n >= 1); return BitOperations.TrailingZeroCount(n); } public static int CeilPow2(int n) { var un = (uint)n; if (un <= 1) return 0; return BitOperations.Log2(un - 1) + 1; } } } \nnamespace AtCoder.Internal { public class DebugAssertException : Exception { public DebugAssertException() : base() { } public DebugAssertException(string message) : base(message) { } public DebugAssertException(string message, Exception innerException) : base(message, innerException) { } } } \n#endregion Expanded')
+    });
+
+    // RUN button
+    run.addEventListener("click", async function () {
+        const code = editor.getValue();
+        const stdin = Stdin.value;
+        const expected = ExpectStdin.value;
+        const api = selectAPI.value;
+
+        Status.textContent = "WJ";
+        ExitCode.textContent = "";
+        Err.textContent = "";
+        Out.textContent = "";
+
+        let body = {
+            code,
+            compiler: "mono-6.12.0.199",
+            save: false,
+            options: "mono-optimize",
+            codes: [],
+            "compiler-option-raw": "",
+            description: "",
+            "runtime-option-raw": "",
+            stdin,
+            title: "",
+        };
+
+        const result = await request(body);
+
+        if (checkbox.checked) {
+            Status.textContent = result.status === "OK" && expected.trim() === result.output.trim() ? "AC" : "WA";
+        } else {
+            Status.textContent = result.status;
+        }
+
+        ExitCode.textContent = result.exitCode;
+        Err.textContent = result.error;
+        Out.textContent = result.output;
+    });
+
+    // API selection
+    /*selectAPI.addEventListener("change", function () {apikeyArea.style.visibility = "visible";});*/
+</script>
+
+</body>
+
+</html>

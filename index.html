@@ -276,10 +276,10 @@
                     };
                 }
             }
-            editor.session.setValue('using System;using System.Collections.Generic;using System.Diagnostics;using static System.Linq;using System.Numerics;using static System.Math;'+
+            editor.session.setValue('using System;using System.Collections.Generic;using System.Diagnostics;using System.Linq;using static System.Linq.Enumerable;using System.Numerics;using static System.Math;'+
             'using teg=System.Int32;using rin=System.String;using vi=System.Collections.Generic.List<int>;using vs=System.Collections.Generic.List<string>;using vvi=System.Collections.Generic.List<System.Collections.Generic.List<int>>;using si=System.Collections.Generic.SortedSet<int>;using qi=System.Collections.Generic.Queue<int>;using dii=System.Collections.Generic.Dictionary<int,int>;using dsi=System.Collections.Generic.Dictionary<string,int>;using mi=System.Collections.Generic.HashSet<int>;\nusing static utils;'+
             '\n\nclass P{\n    public static void Main(string[] args){\n        \n    }\n}\n'+
-            'class utils{public static int tegin()=>rintoint(input());public static List<int> vifil(int a)=>Enumerable.Repeat(a,10000000).ToList();public static string rinin()=>Console.ReadLine();public static List<int>viin()=rintovs(rinin()).Select(int.Parse).ToList();public static void print(object x,rin end)=>Console.Write(x+end);public static void print(object x)=>Console.WriteLine(x);public static void print<T>(List<T>a)=>print(string.Join(" ",a));public static void print<T>(HashSet<T>a)=>print(string.Join(" ",a));public static int rintoint(string s)=>int.Parse(s);public static string yn(int b)=>b>0?"Yes":"No";public static string yn(bool b)=>b?"Yes":"No";public static List<rin>rintovs(rin a)=>a.Split(\' \').ToList();public static List<int>range(int start,int n)=>Enumerable.Range(start,n).ToList();public static void fin()=>Environment.Exit(0);public static bool chmin(ref int a,int b){if(a>b){a=b;return true;}return false;}public static bool chmax(ref int a,int b){if(a<b){a=b;return true;}return false;}}');
+            'class utils{public static int tegin()=>rintoint(input());public static List<int> vifil(int a)=>Enumerable.Repeat(a,10000000).ToList();public static string rinin()=>Console.ReadLine();public static List<int>viin()=>rintovs(rinin()).Select(int.Parse).ToList();public static void print(object x,rin end)=>Console.Write(x+end);public static void print(object x)=>Console.WriteLine(x);public static void print<T>(List<T>a)=>print(string.Join(" ",a));public static void print<T>(HashSet<T>a)=>print(string.Join(" ",a));public static int rintoint(string s)=>int.Parse(s);public static string yn(int b)=>b>0?"Yes":"No";public static string yn(bool b)=>b?"Yes":"No";public static List<rin>rintovs(rin a)=>a.Split(\' \').ToList();public static void fin()=>Environment.Exit(0);public static void chmin(ref int a,int b){if(a>b)a=b;}public static bool chmin(ref int a,int b){if(a>b){a=b;return true;}return false;}public static void chmax(ref int a,int b){if(a<b){a=b;}}public static bool chmax(ref int a,int b){if(a<b){a=b;return true;}return false;}}');
 
             // RUN button
             run.addEventListener("click", async function () {
@@ -324,6 +324,7 @@
         </script>
     </body>
 </html>
+
 
 
 
